@@ -1,6 +1,8 @@
 import os
 import asyncio
 import logging
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import threading
 from google import genai
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
@@ -25,10 +27,22 @@ ADMIN_CHAT_ID = "8613322776"
 # Gemini Client ማዘጋጀት
 ai_client = genai.Client(api_key=GEMINI_API_KEY)
 
-# የውይይት ደረጃዎች (States)
+# Render እንዳይዘጋው የሚያደርግ አነስተኛ ዌብ ሰርቨር (Dummy Web Server)
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is alive!")
+
+def run_dummy_server():
+    port = int(os.environ.get("PORT", 8080))
+    server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
+    server.serve_forever()
+
+# የውይይት ደረጃዎች
 NAME, PHONE, ADDRESS, STATUS = range(4)
 
-# የመጽሐፉ ሙሉ የእውቀት ማዕከል (Knowledge Base System Prompt)
+# የመጽሐፉ ሙሉ የእውቀት ማዕከል
 SYSTEM_PROMPT = """
 አንተ 'Ethio Remote job' የተባልክ የቴሌግራም ቦት ረዳት ነህ።
 ስራህ ስለ ቀጥተኛ ሽያጭ (Direct Selling / Network Marketing) እና ስለ 'አልፋ' (ALFA) አለም አቀፍ ድርጅት የተዘጋጀውን መጽሐፍ መሰረት በማድረግ የተጠቃሚዎችን ጥያቄ በሙሉ በትህትና፣ በሙያዊ ብቃት እና በአማርኛ መመለስ ነው።
@@ -50,7 +64,6 @@ SYSTEM_PROMPT = """
 ደንበኞች ስለስራው፣ ስለ ክፍያው፣ ስለ ፓኬጆች ወይም ስለ ድርጅቱ ህጋዊነት ሲጠይቁ ከዚህ መጽሐፍ መረጃ አንጻር አሳማኝ፣ አበረታች እና ግልጽ መልስ ስጥ።
 """
 
-# /start ሲባል ምዝገባ መጀመር
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "እንኳን ወደ *Ethio Remote job* በሰላም መጡ! 🌟\n\n"
@@ -71,7 +84,6 @@ async def get_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def get_address(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["address"] = update.message.text
-    
     reply_keyboard = [["ተማሪ", "ሰራተኛ"], ["ሌላ"]]
     await update.message.reply_text(
         "እርስዎ ተማሪ ነዎት ወይስ ሰራተኛ?",
@@ -84,8 +96,7 @@ async def get_address(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["status"] = update.message.text
     user = update.message.from_user
-    
-    # ለAdmin የሚላክ መረጃ ማዘጋጀት
+
     admin_notification = (
         "📥 *አዲስ ተመዝጋቢ ደርሷል!*\n\n"
         f"👤 *ስም:* {context.user_data.get('full_name')}\n"
@@ -94,8 +105,7 @@ async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"💼 *ሁኔታ:* {context.user_data.get('status')}\n"
         f"🔗 *Telegram:* @{user.username if user.username else 'የለውም'} (ID: {user.id})"
     )
-    
-    # ለAdmin መላክ
+
     if ADMIN_CHAT_ID:
         try:
             await context.bot.send_message(
@@ -113,11 +123,10 @@ async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return ConversationHandler.END
 
-# መደበኛ ጥያቄዎችን በGemini AI መመለስ
 async def handle_ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_query = update.message.text
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
-    
+
     try:
         response = ai_client.models.generate_content(
             model="gemini-2.5-flash",
@@ -131,7 +140,6 @@ async def handle_ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def run_bot():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    # የተጠቃሚ መረጃ መቀበያ መዋቅር
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
@@ -144,21 +152,21 @@ async def run_bot():
     )
 
     app.add_handler(conv_handler)
-    # ከምዝገባ ውጪ የሚጠየቁ ጥያቄዎችን በAI መመለስ
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_ai_chat))
 
     print("Ethio Remote job ቦት መስራት ጀምሯል...")
-    
-    # Event loop እና background tasks ማስተናገድ
+
     await app.initialize()
     await app.start()
     await app.updater.start_polling(drop_pending_updates=True)
-    
-    # አገልግሎቱ ተከፍቶ እንዲቆይ
+
     while True:
         await asyncio.sleep(3600)
 
 def main():
+    # Render ፖርቱን አግኝቶ Timed Out እንዳይል ዌብ ሰርቨሩን በጀርባ ማስጀመር
+    threading.Thread(target=run_dummy_server, daemon=True).start()
+    
     try:
         asyncio.run(run_bot())
     except (KeyboardInterrupt, SystemExit):
