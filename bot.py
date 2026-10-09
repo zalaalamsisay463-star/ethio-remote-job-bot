@@ -22,7 +22,7 @@ logging.basicConfig(
 # ቁልፎች
 BOT_TOKEN = "8640220728:AAH0-c-8mCclYsqinupY8ZpsZ8JxjdYXtHk"
 # ከ AI Studio ያገኙትን ሙሉ ቁልፍ እዚህ ያስገቡ
-GEMINI_API_KEY = "AQ.Ab8RN6K1XNjabBROtMZCaDhpw..." 
+GEMINI_API_KEY = "AQ.Ab8RN6K1XNjabBROtMZCaDhpwS6SDmqZ8cw39cesRLymeHnIwg" 
 ADMIN_CHAT_ID = "8613322776"
 
 # Gemini ማዋቀር
