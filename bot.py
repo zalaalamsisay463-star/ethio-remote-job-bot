@@ -21,7 +21,7 @@ logging.basicConfig(
 
 # ቁልፎች
 BOT_TOKEN = "8640220728:AAH0-c-8mCclYsqinupY8ZpsZ8JxjdYXtHk"
-GEMINI_API_KEY = "AQ.Ab8RN6JjYT9AN-b4KBhVHcHCy27oyG_iSpOwRpB6aOFbFztXvg"
+GEMINI_API_KEY = "AQ.Ab8RN6K3_90_wcj3NFsZhn0oqhzoWkd_vI7Uc3QdIfmgsE95sw"
 ADMIN_CHAT_ID = "8613322776"
 
 # Gemini Client ማዘጋጀት
