@@ -18,7 +18,7 @@ logging.basicConfig(
 
 # የአካባቢ ተለዋዋጮች (Environment Variables ከ Render ይወሰዳሉ)
 BOT_TOKEN = os.environ.get("8640220728:AAH0-c-8mCclYsqinupY8ZpsZ8JxjdYXtHk")
-GEMINI_API_KEY = os.environ.get("AQ.Ab8RN6JxS2vF39xQ9yDzdZDvQWhl6CsV_8x3Jb18EpP3kfnGUA")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 ADMIN_CHAT_ID = os.environ.get("8613322776")  # ያንተ የቴሌግራም User ID
 
 # Gemini Client ማዘጋጀት
