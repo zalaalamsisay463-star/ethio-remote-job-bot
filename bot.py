@@ -19,7 +19,6 @@ logging.basicConfig(
 
 # ቁልፎች
 BOT_TOKEN = "8640220728:AAH0-c-8mCclYsqinupY8ZpsZ8JxjdYXtHk"
-# የ Gemini API Key (ከ AI Studio የተወሰደውን የ AIzaSy... ቁልፍ እዚህ ያስገቡ)
 GEMINI_API_KEY = "AQ.Ab8RN6JjYT9AN-b4KBhVHcHCy27oyG_iSpOwRpB6aOFbFztXvg"
 ADMIN_CHAT_ID = "8613322776"
 
@@ -29,7 +28,7 @@ ai_client = genai.Client(api_key=GEMINI_API_KEY)
 # የውይይት ደረጃዎች (States)
 NAME, PHONE, ADDRESS, STATUS = range(4)
 
-# የመጽሐፉ ሙሉ የእውቀት ማዕከል
+# የመጽሐፉ ሙሉ የእውቀት ማዕከል (Knowledge Base System Prompt)
 SYSTEM_PROMPT = """
 አንተ 'Ethio Remote job' የተባልክ የቴሌግራም ቦት ረዳት ነህ።
 ስራህ ስለ ቀጥተኛ ሽያጭ (Direct Selling / Network Marketing) እና ስለ 'አልፋ' (ALFA) አለም አቀፍ ድርጅት የተዘጋጀውን መጽሐፍ መሰረት በማድረግ የተጠቃሚዎችን ጥያቄ በሙሉ በትህትና፣ በሙያዊ ብቃት እና በአማርኛ መመለስ ነው።
@@ -51,6 +50,7 @@ SYSTEM_PROMPT = """
 ደንበኞች ስለስራው፣ ስለ ክፍያው፣ ስለ ፓኬጆች ወይም ስለ ድርጅቱ ህጋዊነት ሲጠይቁ ከዚህ መጽሐፍ መረጃ አንጻር አሳማኝ፣ አበረታች እና ግልጽ መልስ ስጥ።
 """
 
+# /start ሲባል ምዝገባ መጀመር
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "እንኳን ወደ *Ethio Remote job* በሰላም መጡ! 🌟\n\n"
@@ -85,6 +85,7 @@ async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["status"] = update.message.text
     user = update.message.from_user
     
+    # ለAdmin የሚላክ መረጃ ማዘጋጀት
     admin_notification = (
         "📥 *አዲስ ተመዝጋቢ ደርሷል!*\n\n"
         f"👤 *ስም:* {context.user_data.get('full_name')}\n"
@@ -94,6 +95,7 @@ async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"🔗 *Telegram:* @{user.username if user.username else 'የለውም'} (ID: {user.id})"
     )
     
+    # ለAdmin መላክ
     if ADMIN_CHAT_ID:
         try:
             await context.bot.send_message(
@@ -111,6 +113,7 @@ async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return ConversationHandler.END
 
+# መደበኛ ጥያቄዎችን በGemini AI መመለስ
 async def handle_ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_query = update.message.text
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
@@ -125,9 +128,10 @@ async def handle_ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logging.error(f"AI Error: {e}")
         await update.message.reply_text("ይቅርታ፣ ጥያቄዎን በማስተናገድ ላይ ችግር አጋጥሟል። እባክዎ እንደገና ይሞክሩ።")
 
-def main():
+async def run_bot():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
+    # የተጠቃሚ መረጃ መቀበያ መዋቅር
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
@@ -140,10 +144,25 @@ def main():
     )
 
     app.add_handler(conv_handler)
+    # ከምዝገባ ውጪ የሚጠየቁ ጥያቄዎችን በAI መመለስ
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_ai_chat))
 
     print("Ethio Remote job ቦት መስራት ጀምሯል...")
-    app.run_polling(drop_pending_updates=True, close_loop=False)
+    
+    # Event loop እና background tasks ማስተናገድ
+    await app.initialize()
+    await app.start()
+    await app.updater.start_polling(drop_pending_updates=True)
+    
+    # አገልግሎቱ ተከፍቶ እንዲቆይ
+    while True:
+        await asyncio.sleep(3600)
+
+def main():
+    try:
+        asyncio.run(run_bot())
+    except (KeyboardInterrupt, SystemExit):
+        pass
 
 if __name__ == "__main__":
     main()
