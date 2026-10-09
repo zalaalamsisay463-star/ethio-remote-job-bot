@@ -3,7 +3,7 @@ import asyncio
 import logging
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
-from google import genai
+import google.generativeai as genai
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
     ApplicationBuilder,
@@ -21,13 +21,15 @@ logging.basicConfig(
 
 # ቁልፎች
 BOT_TOKEN = "8640220728:AAH0-c-8mCclYsqinupY8ZpsZ8JxjdYXtHk"
-GEMINI_API_KEY = "AQ.Ab8RN6K3_90_wcj3NFsZhn0oqhzoWkd_vI7Uc3QdIfmgsE95sw"
+# በምስሉ ላይ የሚታየው አዲሱ ቁልፍ
+GEMINI_API_KEY = "AQ.Ab8RN6K1XNjabBROtMZCaDhpw..."  # የቅጂውን ሙሉ ቁልፍ እዚህ ይለጥፉ
 ADMIN_CHAT_ID = "8613322776"
 
-# Gemini Client ማዘጋጀት
-ai_client = genai.Client(api_key=GEMINI_API_KEY)
+# Gemini ማዋቀር
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel("gemini-1.5-flash")
 
-# Render እንዳይዘጋው የሚያደርግ አነስተኛ ዌብ ሰርቨር (Dummy Web Server)
+# Render እንዳይዘጋው Dummy Server
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -42,7 +44,6 @@ def run_dummy_server():
 # የውይይት ደረጃዎች
 NAME, PHONE, ADDRESS, STATUS = range(4)
 
-# የመጽሐፉ ሙሉ የእውቀት ማዕከል
 SYSTEM_PROMPT = """
 አንተ 'Ethio Remote job' የተባልክ የቴሌግራም ቦት ረዳት ነህ።
 ስራህ ስለ ቀጥተኛ ሽያጭ (Direct Selling / Network Marketing) እና ስለ 'አልፋ' (ALFA) አለም አቀፍ ድርጅት የተዘጋጀውን መጽሐፍ መሰረት በማድረግ የተጠቃሚዎችን ጥያቄ በሙሉ በትህትና፣ በሙያዊ ብቃት እና በአማርኛ መመለስ ነው።
@@ -60,8 +61,6 @@ SYSTEM_PROMPT = """
 6. ምርቶች፦ የጤና መጠበቂያ፣ ኮስሞቲክስ፣ አዳዲስ ቴክኖሎጂዎች (የአየር ላይ ግሎብ)፣ የአእምሮ እና የአመራር ስልጠናዎች።
 7. የመተግበሪያ አገልግሎት፦ ሲ.ኤፍ.ኤስ (CFS App) በPlay store የሚገኝ ሲሆን የደንበኞች አገልግሎትና የቅሬታ መፍቻ ነው።
 8. ስልቶች፦ ማጨት (Prospecting)፣ 8ቱ የግብዣ ሂደቶች (ፍጥነት፣ ማድነቅ፣ መጋበዝ፣ "እንዲህ ባደርግልህ... ታደርጋለህ?"፣ የጊዜ ቁርጠኝነት ማግኘት፣ ስልክ መዝጋት)፣ እና ተቃውሞዎችን በአግባቡ ማስተናገድ።
-
-ደንበኞች ስለስራው፣ ስለ ክፍያው፣ ስለ ፓኬጆች ወይም ስለ ድርጅቱ ህጋዊነት ሲጠይቁ ከዚህ መጽሐፍ መረጃ አንጻር አሳማኝ፣ አበረታች እና ግልጽ መልስ ስጥ።
 """
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -96,7 +95,7 @@ async def get_address(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["status"] = update.message.text
     user = update.message.from_user
-
+    
     admin_notification = (
         "📥 *አዲስ ተመዝጋቢ ደርሷል!*\n\n"
         f"👤 *ስም:* {context.user_data.get('full_name')}\n"
@@ -105,7 +104,7 @@ async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"💼 *ሁኔታ:* {context.user_data.get('status')}\n"
         f"🔗 *Telegram:* @{user.username if user.username else 'የለውም'} (ID: {user.id})"
     )
-
+    
     if ADMIN_CHAT_ID:
         try:
             await context.bot.send_message(
@@ -123,15 +122,17 @@ async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return ConversationHandler.END
 
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("ምዝገባው ተቋርጧል። እንደገና ለመጀመር /start ይበሉ።")
+    return ConversationHandler.END
+
 async def handle_ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_query = update.message.text
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
-
+    
     try:
-        response = ai_client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=[SYSTEM_PROMPT, f"የተጠቃሚ ጥያቄ፦ {user_query}"],
-        )
+        prompt = f"{SYSTEM_PROMPT}\n\nየተጠቃሚ ጥያቄ፦ {user_query}"
+        response = model.generate_content(prompt)
         await update.message.reply_text(response.text)
     except Exception as e:
         logging.error(f"AI Error: {e}")
@@ -148,11 +149,12 @@ async def run_bot():
             ADDRESS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_address)],
             STATUS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_status)],
         },
-        fallbacks=[CommandHandler("start", start)],
+        fallbacks=[CommandHandler("cancel", cancel)],
+        allow_reentry=True,
     )
 
-    app.add_handler(conv_handler)
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_ai_chat))
+    app.add_handler(conv_handler, group=0)
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_ai_chat), group=1)
 
     print("Ethio Remote job ቦት መስራት ጀምሯል...")
 
@@ -164,9 +166,7 @@ async def run_bot():
         await asyncio.sleep(3600)
 
 def main():
-    # Render ፖርቱን አግኝቶ Timed Out እንዳይል ዌብ ሰርቨሩን በጀርባ ማስጀመር
     threading.Thread(target=run_dummy_server, daemon=True).start()
-    
     try:
         asyncio.run(run_bot())
     except (KeyboardInterrupt, SystemExit):
