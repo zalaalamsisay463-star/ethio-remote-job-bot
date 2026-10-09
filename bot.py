@@ -16,10 +16,10 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
-# የአካባቢ ተለዋዋጮች (Environment Variables ከ Render ይወሰዳሉ)
-BOT_TOKEN = os.environ.get("8640220728:AAH0-c-8mCclYsqinupY8ZpsZ8JxjdYXtHk")
-GEMINI_API_KEY = os.environ.get("AQ.Ab8RN6JjYT9AN-b4KBhVHcHCy27oyG_iSpOwRpB6aOFbFztXvg")
-ADMIN_CHAT_ID = os.environ.get("8613322776")  # ያንተ የቴሌግራም User ID
+# ቁልፎችዎ በትክክል ተስተካክለው ገብተዋል
+BOT_TOKEN = "8640220728:AAH0-c-8mCclYsqinupY8ZpsZ8JxjdYXtHk"
+GEMINI_API_KEY = "AQ.Ab8RN6JjYT9AN-b4KBhVHcHCy27oyG_iSpOwRpB6aOFbFztXvg"
+ADMIN_CHAT_ID = "8613322776"
 
 # Gemini Client ማዘጋጀት
 ai_client = genai.Client(api_key=GEMINI_API_KEY)
@@ -54,7 +54,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "እንኳን ወደ *Ethio Remote job* በሰላም መጡ! 🌟\n\n"
         "ለመጀመር እባክዎ ሙሉ ስምዎን (Full Name) ይጻፉልን፡",
-        parse_mode="Markdown"
+        parse_mode="Markdown",
     )
     return NAME
 
@@ -74,7 +74,9 @@ async def get_address(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_keyboard = [["ተማሪ", "ሰራተኛ"], ["ሌላ"]]
     await update.message.reply_text(
         "እርስዎ ተማሪ ነዎት ወይስ ሰራተኛ?",
-        reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, resize_keyboard=True)
+        reply_markup=ReplyKeyboardMarkup(
+            reply_keyboard, one_time_keyboard=True, resize_keyboard=True
+        ),
     )
     return STATUS
 
@@ -96,9 +98,9 @@ async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if ADMIN_CHAT_ID:
         try:
             await context.bot.send_message(
-                chat_id=ADMIN_CHAT_ID,
+                chat_id=int(ADMIN_CHAT_ID),
                 text=admin_notification,
-                parse_mode="Markdown"
+                parse_mode="Markdown",
             )
         except Exception as e:
             logging.error(f"Error sending to admin: {e}")
@@ -106,7 +108,7 @@ async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "✅ መረጃዎ በተሳካ ሁኔታ ተመዝግቧል! እናመሰግናለን።\n\n"
         "አሁን ስለ ስራው፣ ስለ ድርጅቱ፣ ስለ ፓኬጆች ወይም ስለ ገቢ አሰራሩ ማንኛውንም ጥያቄ መጠየቅ ይችላሉ። ምን ማወቅ ይፈልጋሉ?",
-        reply_markup=ReplyKeyboardRemove()
+        reply_markup=ReplyKeyboardRemove(),
     )
     return ConversationHandler.END
 
@@ -118,7 +120,7 @@ async def handle_ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         response = ai_client.models.generate_content(
             model="gemini-2.5-flash",
-            contents=[SYSTEM_PROMPT, f"የተጠቃሚ ጥያቄ፦ {user_query}"]
+            contents=[SYSTEM_PROMPT, f"የተጠቃሚ ጥያቄ፦ {user_query}"],
         )
         await update.message.reply_text(response.text)
     except Exception as e:
