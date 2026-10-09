@@ -21,7 +21,7 @@ logging.basicConfig(
 
 # ቁልፎች
 BOT_TOKEN = "8640220728:AAH0-c-8mCclYsqinupY8ZpsZ8JxjdYXtHk"
-GEMINI_API_KEY = "AQ.Ab8RN6K1XNjabBROtMZCaDhpwS6SDmqZ8cw39cesRLymeHnIwg"  # ያንተን ሙሉ የGemini API Key እዚህ አስገባ
+GEMINI_API_KEY = "AQ.Ab8RN6K1XNjabBROtMZCaDhpwS6SDmqZ8cw39cesRLymeHnIwg"  # ያንተን ሙሉ ቁልፍ እዚህ አስገባ
 ADMIN_CHAT_ID = "8613322776"
 
 # Gemini ማዋቀር
@@ -32,7 +32,7 @@ except Exception as e:
     logging.error(f"AI config error: {e}")
     ai_model = None
 
-# Render እንዳይዘጋው የሚያደርግ Dummy Server
+# Render እንዳይዘጋው Dummy Server
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -47,33 +47,57 @@ def run_dummy_server():
 # የውይይት ደረጃዎች
 NAME, PHONE, ADDRESS, STATUS = range(4)
 
-# የመጽሐፉ ሙሉ የእውቀት ማዕከል
-SYSTEM_PROMPT = """
-አንተ 'Ethio Remote job' የተባልክ የቴሌግራም ቦት ረዳት ነህ።
-ስራህ ስለ ቀጥተኛ ሽያጭ (Direct Selling / Network Marketing) እና ስለ 'አልፋ' (ALFA) አለም አቀፍ ድርጅት የተዘጋጀውን መረጃ መሰረት በማድረግ የተጠቃሚዎችን ማንኛውንም ጥያቄ በትህትና፣ በሙያዊ ብቃት እና በአማርኛ ማብራራት ነው።
+# የመጽሐፉ ሙሉ የእውቀት ማዕከል (የተሟላ መረጃ)
+FULL_KNOWLEDGE_BASE = """
+ስለ አልፋ (ALFA) አለም አቀፍ ድርጅት እና ቀጥተኛ ሽያጭ ሙሉ መረጃ፦
 
-መሰረታዊ መረጃዎች፦
-1. ድርጅቱ፦ አልፋ (ALFA) ዋና ቢሮው አሜሪካ ሲሆን የመጀመሪያው የአፍሪካ ቅርንጫፉ በኢትዮጵያ ተከፍቷል። ወደ ሱዳን፣ ኬንያ፣ ሶማሊያ፣ እስራኤል፣ አንጎላ እና ኡጋንዳ ለመስፋፋት አቅዷል።
-2. የግብይት ልዩነት፦ ባህላዊ ግብይት (አምራች -> ጅምላ -> ችርቻሮ -> ተጠቃሚ) በብዙ ደላሎችና ማስታወቂያ ከፍተኛ ወጪ ሲኖረው፤ ቀጥተኛ ሽያጭ (Direct Selling) ምርት ከአምራች በቀጥታ ወደ ተጠቃሚ ይደርሳል፣ ተጠቃሚዎችና አባላት በቃላት ማስታወቂያ ከፍተኛ ኮሚሽን ያገኛሉ።
-3. የአባልነት ፓኬጆች፦
-   - የሎው (Yellow)፦ $110 (11% ዙር ኮሚሽን፣ ሳምንታዊ ጣሪያ $1,000)
-   - ኦሬንጅ (Orange)፦ $210 (12% ዙር ኮሚሽን፣ ሳምንታዊ ጣሪያ $2,000)
-   - ግሪን (Green)፦ $410 (14% ዙር ኮሚሽን፣ ሳምንታዊ ጣሪያ $4,000)
-   - ጎልደን (Golden)፦ $810 (15% ዙር ኮሚሽን፣ ሳምንታዊ ጣሪያ $5,000)
-4. የዙር (Cycle) እና ጉርሻ አሰራር፦ በግራ 600 ነጥብ፣ በቀኝ 600 ነጥብ ሲመጣጠን 1 ዙር (Cycle) ይሆናል። ቀጥተኛ የማስታወቂያ ጉርሻ ከ 16% እስከ 19% ይሰጣል።
-5. የደረጃ እድገቶችና ማበረታቻዎች፦
-   - CT -> MT -> TT
-   - NTB፦ $5,000 ቢሮ ድጎማ ወይም የውጭ ሀገር ጉዞ
-   - IBB፦ $10,000 ቢሮ ድጎማ + $15,000 የመኪና ሽልማት
-   - GEB፦ $20,000 ቢሮ ድጎማ + $25,000 የመኪና ሽልማት
-   - CA፦ $50,000 ቢሮ ድጎማ + $100,000 ዶላር የገንዘብ ሽልማት
-   - AL (Alpha Legend)፦ $100,000 ቢሮ ድጎማ + $500,000 ዶላር የህይወት ዘመን ሽልማት
-6. ምርቶች፦ ጥራት ያላቸው የጤና መጠበቂያዎች፣ ኮስሞቲክስ፣ አዳዲስ የቴክኖሎጂ ውጤቶች (ለምሳሌ የአየር ላይ ግሎብ)፣ እንዲሁም የአእምሮ እና የአመራር ስልጠናዎች።
-7. የመተግበሪያ አገልግሎት፦ ሲ.ኤፍ.ኤስ (CFS App) በ Google Play Store የሚገኝ ሲሆን የደንበኞች አገልግሎትና የቅሬታ መፍቻ መድረክ ነው።
-8. የስኬት ስልቶች፦ እጩዎችን ማጨት (Prospecting)፣ 8ቱ የግብዣ ሂደቶች (ፍጥነት፣ ማድነቅ፣ መጋበዝ፣ "እንዲህ ባደርግልህ... ታደርጋለህ?" ጥያቄ፣ የጊዜ ቁርጠኝነት መውሰድ፣ ስልክ መዝጋት) እና ተቃውሞዎችን በአግባቡ ማስተናገድ።
+1. ስለ ድርጅቱ (ALFA)፦
+- አልፋ አለም አቀፍ የቀጥተኛ ሽያጭ (Direct Selling / Network Marketing) ድርጅት ነው።
+- ዋና መስሪያ ቤቱ በአሜሪካ የሚገኝ ሲሆን በአፍሪካ የመጀመሪያ ቅርንጫፉን በኢትዮጵያ በይፋ ከፍቷል።
+- ወደ ሱዳን፣ ኬንያ፣ ሶማሊያ፣ እስራኤል፣ አንጎላ እና ኡጋንዳ በስፋት ለመስፋፋት እቅድ አለው።
+- በኢትዮጵያ ንግድና ቀጠናዊ ትስስር ሚኒስቴር ሙሉ ህጋዊ ፈቃድ ያለው ድርጅት ነው።
 
-ደንበኞች ስለስራው፣ ስለ ክፍያው፣ ስለ ፓኬጆች ወይም ስለ ድርጅቱ ህጋዊነት ሲጠይቁ ከዚህ መረጃ በመነሳት አሳማኝ፣ አበረታች፣ ግልጽ እና ማራኪ በሆነ አማርኛ መልስ ስጥ።
+2. የግብይት ልዩነት (ቀጥተኛ ሽያጭ ከባህላዊ ንግድ)፦
+- ባህላዊ ግብይት፦ ምርት ከአምራች ተነስቶ በዋና ጅምላ ሻጭ፣ በችርቻሮ ሻጭ እና በውድ ማስታወቂያዎች በኩል አልፎ ሸማቹ ጋር ሲደርስ ዋጋው ይንራል።
+- ቀጥተኛ ሽያጭ፦ ምርት ከአምራች በቀጥታ ወደ ተጠቃሚ ይደርሳል። በመሃል ያለውን የማስታወቂያና የደላሎች ወጪ ለአባላትና ለተጠቃሚዎች በኮሚሽን መልክ ያከፋፍላል።
+
+3. የአባልነት ፓኬጆች እና ዋጋዎች፦
+- የሎው (Yellow)፦ ዋጋው $110 ሲሆን 11% ዙር ኮሚሽን ይሰጣል (ሳምንታዊ ጣሪያ $1,000)።
+- ኦሬንጅ (Orange)፦ ዋጋው $210 ሲሆን 12% ዙር ኮሚሽን ይሰጣል (ሳምንታዊ ጣሪያ $2,000)።
+- ግሪን (Green)፦ ዋጋው $410 ሲሆን 14% ዙር ኮሚሽን ይሰጣል (ሳምንታዊ ጣሪያ $4,000)።
+- ጎልደን (Golden)፦ ዋጋው $810 ሲሆን 15% ዙር ኮሚሽን ይሰጣል (ሳምንታዊ ጣሪያ $5,000)።
+
+4. የገቢና የኮሚሽን አሰራር፦
+- የቀጥተኛ ማስታወቂያ ጉርሻ (Direct Bonus)፦ አዲስ ሰው ሲጋብዙ ከ 16% እስከ 19% ቀጥተኛ ጉርሻ ያገኛሉ።
+- የዙር ኮሚሽን (Cycle Bonus)፦ በግራ ቡድን 600 ነጥብ፣ በቀኝ ቡድን 600 ነጥብ ሲመጣጠን 1 ዙር (Cycle) ተብሎ እንደ ፓኬጅዎ መቶኛ ክፍያ ይፈጸማል።
+
+5. የደረጃ እድገቶችና ከፍተኛ ሽልማቶች፦
+- መነሻ ደረጃዎች፦ CT (Consultant) -> MT (Manager) -> TT (Team Leader)
+- NTB፦ $5,000 የቢሮ ድጎማ ወይም የውጭ ሀገር ጉዞ
+- IBB፦ $10,000 የቢሮ ድጎማ + $15,000 የመኪና ሽልማት
+- GEB፦ $20,000 የቢሮ ድጎማ + $25,000 የመኪና ሽልማት
+- CA፦ $50,000 የቢሮ ድጎማ + $100,000 ዶላር የገንዘብ ሽልማት
+- AL (Alpha Legend)፦ $100,000 የቢሮ ድጎማ + $500,000 ዶላር የህይወት ዘመን ሽልማት
+
+6. ምርቶች፦
+- ከፍተኛ ጥራት ያላቸው የተፈጥሮ ጤና መጠበቂያዎች
+- የተለያዩ ውበት መጠበቂያና ኮስሞቲክስ ምርቶች
+- አዳዲስ የቴክኖሎጂ ውጤቶች (ለምሳሌ የአየር ላይ ግሎብ - Magnetic Levitation Globe)
+- የአእምሮ እድገት እና የአመራር ብቃት (Leadership) ስልጠናዎች
+
+7. መተግበሪያና ድጋፍ፦
+- ሲ.ኤፍ.ኤስ (CFS App) በ Google Play Store የሚገኝ ሲሆን የደንበኞች ክትትልና የቅሬታ መፍቻ ነው።
+- 8ቱ የግብዣ ስልቶች (ፍጥነት፣ ማድነቅ፣ መጋበዝ፣ "እንዲህ ባደርግልህ... ታደርጋለህ?" የሚል አቀራረብ፣ የጊዜ ቀጠሮ ማረጋገጥና ስልክ መዝጋት)።
 """
+
+# AI በማይሰራበት ጊዜ በቀጥታ ፈጣን መልስ የሚሰጡ ዝግጁ መልሶች
+FALLBACK_ANSWERS = {
+    "ድርጅት": "🏢 *ስለ አልፋ (ALFA) ድርጅት፦*\n\nአልፋ ዋና ቢሮው አሜሪካ የሚገኝ አለም አቀፍ የቀጥተኛ ሽያጭ (Direct Selling) ድርጅት ሲሆን በአፍሪካ የመጀመሪያ ቅርንጫፉን በኢትዮጵያ በይፋ ከፍቷል። ድርጅቱ ህጋዊ የንግድ ፈቃድ ያለው ሲሆን ወደ ሌሎች የአፍሪካ ሀገራትም በመስፋፋት ላይ ይገኛል።",
+    "ፓኬጅ": "📦 *የአባልነት ፓኬጆች፦*\n\n1. *Yellow ($110)* - 11% ዙር ኮሚሽን (ሳምንታዊ ጣሪያ $1,000)\n2. *Orange ($210)* - 12% ዙር ኮሚሽን (ሳምንታዊ ጣሪያ $2,000)\n3. *Green ($410)* - 14% ዙር ኮሚሽን (ሳምንታዊ ጣሪያ $4,000)\n4. *Golden ($810)* - 15% ዙር ኮሚሽን (ሳምንታዊ ጣሪያ $5,000)",
+    "ክፍያ": "💰 *የክፍያና ኮሚሽን አሰራር፦*\n\n- *ቀጥተኛ ማስታወቂያ ጉርሻ፦* አዲስ አባል ሲጋብዙ ከ 16% እስከ 19% ጉርሻ ይሰጣል።\n- *የዙር ኮሚሽን (Cycle)፦* በግራ 600 ነጥብ፣ በቀኝ 600 ነጥብ ሲመጣጠን እንደ ፓኬጅዎ መቶኛ ሳምንታዊ ገቢ ያገኛሉ።",
+    "ሽልማት": "🏆 *የደረጃ እድገቶችና ሽልማቶች፦*\n\n- *NTB፦* $5,000 የቢሮ ድጎማ ወይም ጉዞ\n- *IBB፦* $10,000 ቢሮ + $15,000 መኪና\n- *GEB፦* $20,000 ቢሮ + $25,000 መኪና\n- *CA፦* $50,000 ቢሮ + $100,000 ዶላር\n- *Alpha Legend፦* $100,000 ቢሮ + $500,000 ዶላር ሽልማት!",
+    "ምርት": "🛍 *ምርቶች፦*\n\n- የጤና መጠበቂያዎች\n- የተፈጥሮ ኮስሞቲክስ\n- ዘመናዊ የቴክኖሎጂ ውጤቶች (የአየር ላይ ግሎብ)\n- የአመራርና የአእምሮ ስልጠናዎች",
+}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
@@ -140,21 +164,31 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 async def handle_ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_query = update.message.text
+    user_query = update.message.text.lower()
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     
-    if not ai_model:
-        await update.message.reply_text("ይቅርታ፣ የ AI አገልግሎት ለጊዜው አልተገናኘም። እባክዎ ትንሽ ቆይተው ይሞክሩ።")
-        return
+    # 1. መጀመሪያ በ AI ለመመለስ መሞከር
+    if ai_model:
+        try:
+            prompt = f"አንተ Ethio Remote job ረዳት ነህ። የሚከተለውን ሙሉ መረጃ ተጠቅመህ ጥያቄውን በአማርኛ መልስ።\n\nመረጃ፦\n{FULL_KNOWLEDGE_BASE}\n\nየተጠቃሚ ጥያቄ፦ {user_query}\nመልስ፦"
+            response = ai_model.generate_content(prompt)
+            if response and response.text:
+                await update.message.reply_text(response.text)
+                return
+        except Exception as e:
+            logging.error(f"AI call failed: {e}")
 
-    try:
-        # መረጃውን እና የተጠቃሚውን ጥያቄ አጣምሮ ለAI መላክ
-        prompt = f"{SYSTEM_PROMPT}\n\nተጠቃሚው የጠየቀው ጥያቄ፦ {user_query}\nመልስ፦"
-        response = ai_model.generate_content(prompt)
-        await update.message.reply_text(response.text)
-    except Exception as e:
-        logging.error(f"AI Error: {e}")
-        await update.message.reply_text("ይቅርታ፣ ጥያቄዎን በማስተናገድ ላይ ችግር አጋጥሟል። እባክዎ እንደገና ይሞክሩ።")
+    # 2. AI ባይመልስ እንኳን በኮዱ ውስጥ ከተካተተው ሙሉ መረጃ በቀጥታ መመለስ
+    for key, answer in FALLBACK_ANSWERS.items():
+        if key in user_query:
+            await update.message.reply_text(answer, parse_mode="Markdown")
+            return
+
+    # አጠቃላይ ማብራሪያ
+    await update.message.reply_text(
+        f"ℹ️ *ስለ ALFA እና ስራው የተሟላ መረጃ፦*\n{FULL_KNOWLEDGE_BASE}",
+        parse_mode="Markdown",
+    )
 
 async def run_bot():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
