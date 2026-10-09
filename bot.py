@@ -3,7 +3,6 @@ import asyncio
 import logging
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
-import google.generativeai as genai
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
     ApplicationBuilder,
@@ -13,6 +12,7 @@ from telegram.ext import (
     filters,
     ContextTypes,
 )
+import google.generativeai as genai
 
 # Logging ማዘጋጀት
 logging.basicConfig(
@@ -21,15 +21,19 @@ logging.basicConfig(
 
 # ቁልፎች
 BOT_TOKEN = "8640220728:AAH0-c-8mCclYsqinupY8ZpsZ8JxjdYXtHk"
-# በምስሉ ላይ የሚታየው አዲሱ ቁልፍ
-GEMINI_API_KEY = "AQ.Ab8RN6K1XNjabBROtMZCaDhpw..."  # የቅጂውን ሙሉ ቁልፍ እዚህ ይለጥፉ
+# ከ AI Studio ያገኙትን ሙሉ ቁልፍ እዚህ ያስገቡ
+GEMINI_API_KEY = "AQ.Ab8RN6K1XNjabBROtMZCaDhpw..." 
 ADMIN_CHAT_ID = "8613322776"
 
 # Gemini ማዋቀር
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
+try:
+    genai.configure(api_key=GEMINI_API_KEY)
+    ai_model = genai.GenerativeModel("gemini-1.5-flash")
+except Exception as e:
+    logging.error(f"AI config error: {e}")
+    ai_model = None
 
-# Render እንዳይዘጋው Dummy Server
+# Render እንዳይዘጋው የሚያደርግ Dummy Server
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -130,9 +134,13 @@ async def handle_ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_query = update.message.text
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     
+    if not ai_model:
+        await update.message.reply_text("ይቅርታ፣ የ AI አገልግሎት አልተገናኘም።")
+        return
+
     try:
         prompt = f"{SYSTEM_PROMPT}\n\nየተጠቃሚ ጥያቄ፦ {user_query}"
-        response = model.generate_content(prompt)
+        response = ai_model.generate_content(prompt)
         await update.message.reply_text(response.text)
     except Exception as e:
         logging.error(f"AI Error: {e}")
@@ -150,11 +158,11 @@ async def run_bot():
             STATUS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_status)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
-        allow_reentry=True,
     )
 
-    app.add_handler(conv_handler, group=0)
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_ai_chat), group=1)
+    # ConversationHandler ብቻውን እንዲሰራ handlerዎችን በአግባቡ መመደብ
+    app.add_handler(conv_handler)
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_ai_chat))
 
     print("Ethio Remote job ቦት መስራት ጀምሯል...")
 
