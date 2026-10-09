@@ -21,8 +21,7 @@ logging.basicConfig(
 
 # ቁልፎች
 BOT_TOKEN = "8640220728:AAH0-c-8mCclYsqinupY8ZpsZ8JxjdYXtHk"
-# ከ AI Studio ያገኙትን ሙሉ ቁልፍ እዚህ ያስገቡ
-GEMINI_API_KEY = "AQ.Ab8RN6K1XNjabBROtMZCaDhpwS6SDmqZ8cw39cesRLymeHnIwg" 
+GEMINI_API_KEY = "AQ.Ab8RN6K1XNjabBROtMZCaDhpwS6SDmqZ8cw39cesRLymeHnIwg"  # ያንተን ሙሉ የGemini API Key እዚህ አስገባ
 ADMIN_CHAT_ID = "8613322776"
 
 # Gemini ማዋቀር
@@ -48,23 +47,32 @@ def run_dummy_server():
 # የውይይት ደረጃዎች
 NAME, PHONE, ADDRESS, STATUS = range(4)
 
+# የመጽሐፉ ሙሉ የእውቀት ማዕከል
 SYSTEM_PROMPT = """
 አንተ 'Ethio Remote job' የተባልክ የቴሌግራም ቦት ረዳት ነህ።
-ስራህ ስለ ቀጥተኛ ሽያጭ (Direct Selling / Network Marketing) እና ስለ 'አልፋ' (ALFA) አለም አቀፍ ድርጅት የተዘጋጀውን መጽሐፍ መሰረት በማድረግ የተጠቃሚዎችን ጥያቄ በሙሉ በትህትና፣ በሙያዊ ብቃት እና በአማርኛ መመለስ ነው።
+ስራህ ስለ ቀጥተኛ ሽያጭ (Direct Selling / Network Marketing) እና ስለ 'አልፋ' (ALFA) አለም አቀፍ ድርጅት የተዘጋጀውን መረጃ መሰረት በማድረግ የተጠቃሚዎችን ማንኛውንም ጥያቄ በትህትና፣ በሙያዊ ብቃት እና በአማርኛ ማብራራት ነው።
 
-የመጽሐፉ ዋና ዋና ነጥቦች፦
-1. ድርጅቱ፦ አልፋ (ALFA) ዋና ቢሮው አሜሪካ ሲሆን የመጀመሪያ ቅርንጫፉ በኢትዮጵያ ተከፍቷል። ወደ ሱዳን፣ ኬንያ፣ ሶማሊያ፣ እስራኤል፣ አንጎላ እና ኡጋንዳ ለመስፋፋት አቅዷል።
-2. የግብይት ልዩነት፦ ባህላዊ ግብይት (አምራች -> ጅምላ -> ችርቻሮ -> ተጠቃሚ) በብዙ ደላሎችና ማስታወቂያ ወጪ ሲኖረው፤ ቀጥተኛ ሽያጭ ምርት ከአምራች በቀጥታ ወደ ተጠቃሚ ይደርሳል፣ ተጠቃሚዎች በቃላት ማስታወቂያ ኮሚሽን ያገኛሉ።
+መሰረታዊ መረጃዎች፦
+1. ድርጅቱ፦ አልፋ (ALFA) ዋና ቢሮው አሜሪካ ሲሆን የመጀመሪያው የአፍሪካ ቅርንጫፉ በኢትዮጵያ ተከፍቷል። ወደ ሱዳን፣ ኬንያ፣ ሶማሊያ፣ እስራኤል፣ አንጎላ እና ኡጋንዳ ለመስፋፋት አቅዷል።
+2. የግብይት ልዩነት፦ ባህላዊ ግብይት (አምራች -> ጅምላ -> ችርቻሮ -> ተጠቃሚ) በብዙ ደላሎችና ማስታወቂያ ከፍተኛ ወጪ ሲኖረው፤ ቀጥተኛ ሽያጭ (Direct Selling) ምርት ከአምራች በቀጥታ ወደ ተጠቃሚ ይደርሳል፣ ተጠቃሚዎችና አባላት በቃላት ማስታወቂያ ከፍተኛ ኮሚሽን ያገኛሉ።
 3. የአባልነት ፓኬጆች፦
    - የሎው (Yellow)፦ $110 (11% ዙር ኮሚሽን፣ ሳምንታዊ ጣሪያ $1,000)
    - ኦሬንጅ (Orange)፦ $210 (12% ዙር ኮሚሽን፣ ሳምንታዊ ጣሪያ $2,000)
    - ግሪን (Green)፦ $410 (14% ዙር ኮሚሽን፣ ሳምንታዊ ጣሪያ $4,000)
    - ጎልደን (Golden)፦ $810 (15% ዙር ኮሚሽን፣ ሳምንታዊ ጣሪያ $5,000)
-4. የዙር (Cycle) አሰራር፦ በግራ 600 ነጥብ፣ በቀኝ 600 ነጥብ ሲመጣጠን 1 ዙር ይሆናል። ቀጥተኛ የማስታወቂያ ጉርሻ 16% - 19% ይሰጣል።
-5. የደረጃ እድገቶች፦ CT -> MT -> TT -> NTB ($5,000 ቢሮ ድጎማ/ጉዞ) -> IBB ($10,000 ቢሮ + $15,000 መኪና) -> GEB ($20,000 ቢሮ + $25,000 መኪና) -> CA ($50,000 ቢሮ + $100,000 ዶላር) -> AL/Alpha Legend ($100,000 ቢሮ + $500,000 ዶላር ሽልማት)።
-6. ምርቶች፦ የጤና መጠበቂያ፣ ኮስሞቲክስ፣ አዳዲስ ቴክኖሎጂዎች (የአየር ላይ ግሎብ)፣ የአእምሮ እና የአመራር ስልጠናዎች።
-7. የመተግበሪያ አገልግሎት፦ ሲ.ኤፍ.ኤስ (CFS App) በPlay store የሚገኝ ሲሆን የደንበኞች አገልግሎትና የቅሬታ መፍቻ ነው።
-8. ስልቶች፦ ማጨት (Prospecting)፣ 8ቱ የግብዣ ሂደቶች (ፍጥነት፣ ማድነቅ፣ መጋበዝ፣ "እንዲህ ባደርግልህ... ታደርጋለህ?"፣ የጊዜ ቁርጠኝነት ማግኘት፣ ስልክ መዝጋት)፣ እና ተቃውሞዎችን በአግባቡ ማስተናገድ።
+4. የዙር (Cycle) እና ጉርሻ አሰራር፦ በግራ 600 ነጥብ፣ በቀኝ 600 ነጥብ ሲመጣጠን 1 ዙር (Cycle) ይሆናል። ቀጥተኛ የማስታወቂያ ጉርሻ ከ 16% እስከ 19% ይሰጣል።
+5. የደረጃ እድገቶችና ማበረታቻዎች፦
+   - CT -> MT -> TT
+   - NTB፦ $5,000 ቢሮ ድጎማ ወይም የውጭ ሀገር ጉዞ
+   - IBB፦ $10,000 ቢሮ ድጎማ + $15,000 የመኪና ሽልማት
+   - GEB፦ $20,000 ቢሮ ድጎማ + $25,000 የመኪና ሽልማት
+   - CA፦ $50,000 ቢሮ ድጎማ + $100,000 ዶላር የገንዘብ ሽልማት
+   - AL (Alpha Legend)፦ $100,000 ቢሮ ድጎማ + $500,000 ዶላር የህይወት ዘመን ሽልማት
+6. ምርቶች፦ ጥራት ያላቸው የጤና መጠበቂያዎች፣ ኮስሞቲክስ፣ አዳዲስ የቴክኖሎጂ ውጤቶች (ለምሳሌ የአየር ላይ ግሎብ)፣ እንዲሁም የአእምሮ እና የአመራር ስልጠናዎች።
+7. የመተግበሪያ አገልግሎት፦ ሲ.ኤፍ.ኤስ (CFS App) በ Google Play Store የሚገኝ ሲሆን የደንበኞች አገልግሎትና የቅሬታ መፍቻ መድረክ ነው።
+8. የስኬት ስልቶች፦ እጩዎችን ማጨት (Prospecting)፣ 8ቱ የግብዣ ሂደቶች (ፍጥነት፣ ማድነቅ፣ መጋበዝ፣ "እንዲህ ባደርግልህ... ታደርጋለህ?" ጥያቄ፣ የጊዜ ቁርጠኝነት መውሰድ፣ ስልክ መዝጋት) እና ተቃውሞዎችን በአግባቡ ማስተናገድ።
+
+ደንበኞች ስለስራው፣ ስለ ክፍያው፣ ስለ ፓኬጆች ወይም ስለ ድርጅቱ ህጋዊነት ሲጠይቁ ከዚህ መረጃ በመነሳት አሳማኝ፣ አበረታች፣ ግልጽ እና ማራኪ በሆነ አማርኛ መልስ ስጥ።
 """
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -120,9 +128,10 @@ async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
             logging.error(f"Error sending to admin: {e}")
 
     await update.message.reply_text(
-        "✅ መረጃዎ በተሳካ ሁኔታ ተመዝግቧል! እናመሰግናለን።\n\n"
-        "አሁን ስለ ስራው፣ ስለ ድርጅቱ፣ ስለ ፓኬጆች ወይም ስለ ገቢ አሰራሩ ማንኛውንም ጥያቄ መጠየቅ ይችላሉ። ምን ማወቅ ይፈልጋሉ?",
+        "✅ *መረጃዎ በተሳካ ሁኔታ ተመዝግቧል! እናመሰግናለን።*\n\n"
+        "አሁን ስለ ድርጅቱ (ALFA)፣ ስለ ፓኬጆች፣ ስለ ክፍያ እና ኮሚሽን አሰራር ወይም ስለ ስራው ማንኛውንም ጥያቄ መጠየቅ ይችላሉ። ምን ማወቅ ይፈልጋሉ?",
         reply_markup=ReplyKeyboardRemove(),
+        parse_mode="Markdown",
     )
     return ConversationHandler.END
 
@@ -135,11 +144,12 @@ async def handle_ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     
     if not ai_model:
-        await update.message.reply_text("ይቅርታ፣ የ AI አገልግሎት አልተገናኘም።")
+        await update.message.reply_text("ይቅርታ፣ የ AI አገልግሎት ለጊዜው አልተገናኘም። እባክዎ ትንሽ ቆይተው ይሞክሩ።")
         return
 
     try:
-        prompt = f"{SYSTEM_PROMPT}\n\nየተጠቃሚ ጥያቄ፦ {user_query}"
+        # መረጃውን እና የተጠቃሚውን ጥያቄ አጣምሮ ለAI መላክ
+        prompt = f"{SYSTEM_PROMPT}\n\nተጠቃሚው የጠየቀው ጥያቄ፦ {user_query}\nመልስ፦"
         response = ai_model.generate_content(prompt)
         await update.message.reply_text(response.text)
     except Exception as e:
@@ -160,7 +170,6 @@ async def run_bot():
         fallbacks=[CommandHandler("cancel", cancel)],
     )
 
-    # ConversationHandler ብቻውን እንዲሰራ handlerዎችን በአግባቡ መመደብ
     app.add_handler(conv_handler)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_ai_chat))
 
