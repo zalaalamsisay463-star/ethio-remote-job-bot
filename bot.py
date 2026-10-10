@@ -20,7 +20,7 @@ logging.basicConfig(
 )
 
 # ቁልፎች
-BOT_TOKEN = "8640220728:AAEVd35buxd663qbJ08u__lpGZ1-nZGW2Zc"
+BOT_TOKEN = "8640220728:AAEbJYYFGdkkk5-DVl6W2RpbgNA6XK9S4-s"
 GEMINI_API_KEY = "AQ.Ab8RN6K1XNjabBROtMZCaDhpwS6SDmqZ8cw39cesRLymeHnIwg"  # ያንተን ሙሉ ቁልፍ እዚህ አስገባ
 ADMIN_CHAT_ID = "8613322776"
 
